@@ -17,9 +17,9 @@ package net.sourceforge.stripes.util;
 
 import java.io.Serializable;
 import org.apache.commons.logging.Log;
-import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
-import org.apache.log4j.Level;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Implementation of {@link Log} that maps directly to a
@@ -65,37 +65,7 @@ public class Log4JLogger implements Log, Serializable {
      */
     private String name = null;
 
-    private static Priority traceLevel;
-
-    // ------------------------------------------------------------
-    // Static Initializer.
-    //
-    // Note that this must come after the static variable declarations
-    // otherwise initialiser expressions associated with those variables
-    // will override any settings done here.
-    //
-    // Verify that log4j is available, and that it is version 1.2.
-    // If an ExceptionInInitializerError is generated, then LogFactoryImpl
-    // will treat that as meaning that the appropriate underlying logging
-    // library is just not present - if discovery is in progress then
-    // discovery will continue.
-    // ------------------------------------------------------------
-    static {
-        if (!Priority.class.isAssignableFrom(Level.class)) {
-            // nope, this is log4j 1.3, so force an ExceptionInInitializerError
-            throw new InstantiationError("Log4J 1.2 not available");
-        }
-
-        // Releases of log4j1.2 >= 1.2.12 have Priority.TRACE available, earlier
-        // versions do not. If TRACE is not available, then we have to map
-        // calls to Log.trace(...) onto the DEBUG level.
-        try {
-            traceLevel = (Priority) Level.class.getDeclaredField("TRACE").get(null);
-        } catch (Exception ex) {
-            // ok, trace not available
-            traceLevel = Priority.DEBUG;
-        }
-    }
+    private static Level traceLevel = Level.TRACE;
 
     // ------------------------------------------------------------ Constructor
 
@@ -148,7 +118,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#trace(Object)
      */
     public void trace(Object message) {
-        getLogger().log(FQCN, traceLevel, message, null);
+        getLogger().log(traceLevel, message, null);
     }
 
     /**
@@ -161,7 +131,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#trace(Object, Throwable)
      */
     public void trace(Object message, Throwable t) {
-        getLogger().log(FQCN, traceLevel, message, t);
+        getLogger().log(traceLevel, message, t);
     }
 
     /**
@@ -171,7 +141,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#debug(Object)
      */
     public void debug(Object message) {
-        getLogger().log(FQCN, Priority.DEBUG, message, null);
+        getLogger().log(Level.DEBUG, message, null);
     }
 
     /**
@@ -182,7 +152,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#debug(Object, Throwable)
      */
     public void debug(Object message, Throwable t) {
-        getLogger().log(FQCN, Priority.DEBUG, message, t);
+        getLogger().log(Level.DEBUG, message, t);
     }
 
     /**
@@ -192,7 +162,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#info(Object)
      */
     public void info(Object message) {
-        getLogger().log(FQCN, Priority.INFO, message, null);
+        getLogger().log(Level.INFO, message, null);
     }
 
     /**
@@ -203,7 +173,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#info(Object, Throwable)
      */
     public void info(Object message, Throwable t) {
-        getLogger().log(FQCN, Priority.INFO, message, t);
+        getLogger().log(Level.INFO, message, t);
     }
 
     /**
@@ -213,7 +183,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#warn(Object)
      */
     public void warn(Object message) {
-        getLogger().log(FQCN, Priority.WARN, message, null);
+        getLogger().log(Level.WARN, message, null);
     }
 
     /**
@@ -224,7 +194,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#warn(Object, Throwable)
      */
     public void warn(Object message, Throwable t) {
-        getLogger().log(FQCN, Priority.WARN, message, t);
+        getLogger().log(Level.WARN, message, t);
     }
 
     /**
@@ -234,7 +204,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#error(Object)
      */
     public void error(Object message) {
-        getLogger().log(FQCN, Priority.ERROR, message, null);
+        getLogger().log(Level.ERROR, message, null);
     }
 
     /**
@@ -245,7 +215,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#error(Object, Throwable)
      */
     public void error(Object message, Throwable t) {
-        getLogger().log(FQCN, Priority.ERROR, message, t);
+        getLogger().log(Level.ERROR, message, t);
     }
 
     /**
@@ -255,7 +225,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#fatal(Object)
      */
     public void fatal(Object message) {
-        getLogger().log(FQCN, Priority.FATAL, message, null);
+        getLogger().log(Level.FATAL, message, null);
     }
 
     /**
@@ -266,7 +236,7 @@ public class Log4JLogger implements Log, Serializable {
      * @see org.apache.commons.logging.Log#fatal(Object, Throwable)
      */
     public void fatal(Object message, Throwable t) {
-        getLogger().log(FQCN, Priority.FATAL, message, t);
+        getLogger().log(Level.FATAL, message, t);
     }
 
     /**
@@ -275,7 +245,12 @@ public class Log4JLogger implements Log, Serializable {
      */
     public Logger getLogger() {
         if (logger == null) {
-            logger = Logger.getLogger(name);
+            if(name != null){
+                logger = LogManager.getLogger(name);
+            } else {
+                logger = LogManager.getLogger(FQCN);
+            }
+
         }
         return (this.logger);
     }
@@ -295,7 +270,7 @@ public class Log4JLogger implements Log, Serializable {
      * @return 
      */
     public boolean isErrorEnabled() {
-        return getLogger().isEnabledFor(Priority.ERROR);
+        return getLogger().isEnabled(Level.ERROR);
     }
 
     /**
@@ -304,7 +279,7 @@ public class Log4JLogger implements Log, Serializable {
      * @return 
      */
     public boolean isFatalEnabled() {
-        return getLogger().isEnabledFor(Priority.FATAL);
+        return getLogger().isEnabled(Level.FATAL);
     }
 
     /**
@@ -324,7 +299,7 @@ public class Log4JLogger implements Log, Serializable {
      * @return 
      */
     public boolean isTraceEnabled() {
-        return getLogger().isEnabledFor(traceLevel);
+        return getLogger().isEnabled(traceLevel);
     }
 
     /**
@@ -333,6 +308,6 @@ public class Log4JLogger implements Log, Serializable {
      * @return 
      */
     public boolean isWarnEnabled() {
-        return getLogger().isEnabledFor(Priority.WARN);
+        return getLogger().isEnabled(Level.WARN);
     }
 }
